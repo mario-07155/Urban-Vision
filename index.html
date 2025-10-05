@@ -1,206 +1,52 @@
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Urban Vision | Monitoramento Ambiental</title>
+  <!-- ===== META BÁSICO ===== -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-<!-- Bootstrap & Icons -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- ===== TÍTULO & DESCRIÇÃO ===== -->
+  <title>Urban Vision | Monitoramento Ambiental</title>
+  <meta name="description" content="Urban Vision — Plataforma inteligente de monitoramento ambiental e análise de qualidade do ar em tempo real na cidade de Luanda.">
+  <meta name="keywords" content="monitoramento ambiental, qualidade do ar, poluição, Luanda, Urban Vision, mapa interativo, PM2.5, SO2, vegetação urbana, sustentabilidade">
+  <meta name="author" content="Mário Correia Pedro">
 
-<!-- Leaflet -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <!-- ===== FAVICON ===== -->
+  <link rel="icon" type="image/png" href="img/nasa.png">
 
-<style>
-  body {
-    margin: 0;
-    font-family: "Poppins", sans-serif;
-    background: linear-gradient(135deg, #002f6c, #0081c9);
-    color: #fff;
-    display: flex;
-    height: 100vh;
-    overflow: hidden;
-  }
+  <!-- ===== SEO SOCIAL (Open Graph / Twitter) ===== -->
+  <meta property="og:title" content="Urban Vision | Monitoramento Ambiental">
+  <meta property="og:description" content="Analisa e monitora em tempo real a qualidade do ar e o verde urbano em Luanda. Uma iniciativa sustentável de Mário Correia Pedro.">
+  <meta property="og:image" content="img/nasa.png">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_PT">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Urban Vision | Monitoramento Ambiental">
+  <meta name="twitter:description" content="Mapa ambiental de Luanda — qualidade do ar, vegetação e indicadores urbanos.">
+  <meta name="twitter:image" content="img/nasa.png">
 
-  /* ==== SIDEBAR ==== */
-  .sidebar {
-    width: 260px;
-    background: rgba(0, 0, 0, 0.35);
-    backdrop-filter: blur(8px);
-    color: white;
-    transition: width 0.3s ease;
-    overflow-y: auto;
-    padding-bottom: 1rem;
-  }
+  <!-- ===== PERFORMANCE ===== -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+  <link rel="dns-prefetch" href="https://unpkg.com">
 
-  .sidebar.collapsed {
-    width: 85px;
-  }
+  <!-- ===== ESTILOS ===== -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="style.css">
 
-  .sidebar-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  }
+  <!-- ===== MANIFESTO / PWA (opcional futuramente) ===== -->
+  <link rel="manifest" href="manifest.json">
 
-  .sidebar-title {
-    margin-left: 10px;
-    font-size: 1.2rem;
-  }
-
-  .sidebar-menu {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  .sidebar-menu li {
-    padding: 15px 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    transition: background 0.3s;
-  }
-
-  .sidebar-menu li:hover {
-    background: rgba(255, 255, 255, 0.1);
-  }
-
-  .sidebar.collapsed li span {
-    display: none;
-  }
-
-  #toggle-btn {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 1.3rem;
-    cursor: pointer;
-  }
-
-  /* ==== LEGENDA ==== */
-  .legend {
-    margin-top: 1rem;
-    padding: 0 1rem;
-  }
-
-  .legend h5 {
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 6px;
-    font-size: 0.85rem;
-  }
-
-  .color-box {
-    width: 18px;
-    height: 18px;
-    border-radius: 4px;
-  }
-
-  /* ==== MAIN ==== */
-  .main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-  }
-
-  .header {
-    padding: 0.8rem 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(6px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .weather {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.95rem;
-  }
-
-  /* ==== SEARCH ==== */
-  .search-container {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    padding: 1rem;
-    flex-wrap: wrap;
-  }
-
-  .search-container input {
-    padding: 8px 10px;
-    border: none;
-    border-radius: 6px;
-    width: 220px;
-    outline: none;
-  }
-
-  /* ==== MAP ==== */
-  #map {
-    height: 50vh;
-    width: 95%;
-    margin: 0 auto;
-    border-radius: 12px;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-  }
-
-  /* ==== CARDS ==== */
-  .card-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1rem;
-    padding: 1rem;
-  }
-
-  .info-card {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 0.8rem;
-    text-align: center;
-    transition: transform 0.2s, background 0.3s;
-  }
-
-  .info-card:hover {
-    transform: translateY(-5px);
-    background: rgba(255, 255, 255, 0.25);
-  }
-
-  /* ==== RESPONSIVO ==== */
-  @media (max-width: 768px) {
-    body {
-      flex-direction: column;
-    }
-    .sidebar {
-      position: fixed;
-      height: 100%;
-      z-index: 10;
-      transform: translateX(-100%);
-      transition: transform 0.3s ease;
-    }
-    .sidebar.show {
-      transform: translateX(0);
-    }
-    #toggle-btn {
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 5px;
-    }
-  }
-</style>
+  <!-- ===== CORES DO NAVEGADOR ===== -->
+  <meta name="theme-color" content="#002f6c">
 </head>
+
+
+
 <body>
 
 <!-- ===== BARRA LATERAL ===== -->
@@ -233,31 +79,78 @@
 
 <!-- ===== MAIN CONTENT ===== -->
 <div id="main" class="main">
-  <div class="header">
-    <div class="weather" id="weatherBar">
-      <i class="bi bi-brightness-high-fill"></i>
-      <span id="weatherText">Domingo, 05 Outubro 2025 — Ensolarado</span>
+  <div class="header d-flex align-items-center justify-content-between px-3">
+
+    <!-- LOGO NASA -->
+    <div class="d-flex align-items-center gap-2">
+      <img src="img/nasa.png" alt="Logo NASA" 
+           style="width:45px; height:45px; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,0.5);">
+      <div class="weather" id="weatherBar">
+        <i class="bi bi-brightness-high-fill"></i>
+        <span id="weatherText">Domingo, 05 Outubro 2025 — Ensolarado</span>
+      </div>
     </div>
+
     <div id="clock" class="fw-bold"></div>
   </div>
 
-  <!-- ===== PESQUISA ===== -->
+<!-- ===== PESQUISA E TÍTULO ===== -->
+<div class="search-header">
+  <h3 class="page-title">Dashboard / Mapa - Zonas de Luanda</h3>
+
   <div class="search-container">
     <input type="text" id="searchCity" placeholder="Pesquisar bairro... (ex: Samba)">
-    <button id="searchBtn" class="btn btn-primary"><i class="bi bi-search"></i></button>
-    <button id="resetBtn" class="btn btn-secondary"><i class="bi bi-arrow-clockwise"></i></button>
+    <button id="searchBtn" class="btn-search"><i class="bi bi-search"></i></button>
+    <button id="resetBtn" class="btn-reset"><i class="bi bi-arrow-clockwise"></i></button>
   </div>
+</div>
+
 
   <!-- ===== MAPA ===== -->
   <div id="map"></div>
 
-  <!-- ===== CARDS ===== -->
-  <div class="card-grid" id="cardsContainer">
-    <div class="info-card"><i class="bi bi-wind"></i><h3 class="fw-bold fs-6 mt-2">PM2.5</h3><p>Selecione um bairro no mapa.</p></div>
-    <div class="info-card"><i class="bi bi-cloud-fog"></i><h3 class="fw-bold fs-6 mt-2">SO₂</h3><p>Informações ao clicar em uma área.</p></div>
-    <div class="info-card"><i class="bi bi-tree-fill"></i><h3 class="fw-bold fs-6 mt-2">Vegetação</h3><p>Percentual verde urbano.</p></div>
-    <div class="info-card"><i class="bi bi-geo-alt-fill"></i><h3 class="fw-bold fs-6 mt-2">Localização</h3><p>Dados atualizados da área.</p></div>
+  <!-- ===== CARDS PRINCIPAIS ===== -->
+<div class="card-grid" id="cardsContainer">
+  <div class="info-card"><i class="bi bi-wind"></i><h3 class="fw-bold fs-6 mt-2">PM2.5</h3><p>Selecione um bairro no mapa.</p></div>
+  <div class="info-card"><i class="bi bi-cloud-fog"></i><h3 class="fw-bold fs-6 mt-2">SO₂</h3><p>Informações ao clicar em uma área.</p></div>
+  <div class="info-card"><i class="bi bi-tree-fill"></i><h3 class="fw-bold fs-6 mt-2">Vegetação</h3><p>Percentual verde urbano.</p></div>
+  <div class="info-card"><i class="bi bi-geo-alt-fill"></i><h3 class="fw-bold fs-6 mt-2">Localização</h3><p>Dados atualizados da área.</p></div>
+</div>
+
+<!-- ===== SETAS (decorativas) ===== -->
+<div class="arrow-section">
+  <i class="bi bi-arrow-down-circle-fill arrow"></i>
+  <i class="bi bi-arrow-down-circle-fill arrow"></i>
+  <i class="bi bi-arrow-down-circle-fill arrow"></i>
+  <i class="bi bi-arrow-down-circle-fill arrow"></i>
+</div>
+
+<!-- ===== CARDS DESCRITIVOS ===== -->
+<div class="description-cards">
+  <div class="desc-card">
+    <h4><i class="bi bi-wind"></i> PM2.5</h4>
+    <p>Representa partículas finas em suspensão. Quanto menor o valor, melhor a qualidade do ar.</p>
   </div>
+
+  <div class="desc-card">
+    <h4><i class="bi bi-cloud-fog"></i> SO₂</h4>
+    <p>Indica a presença de dióxido de enxofre, geralmente relacionado a áreas industriais.</p>
+  </div>
+
+  <div class="desc-card">
+    <h4><i class="bi bi-tree-fill"></i> Vegetação</h4>
+    <p>Mostra o percentual de cobertura verde em determinada área urbana.</p>
+  </div>
+
+  <div class="desc-card">
+    <h4><i class="bi bi-geo-alt-fill"></i> Localização</h4>
+    <p>Mostra o nome, coordenadas e dados de zona selecionada no mapa.</p>
+  </div>
+</div>
+
+
+
+  
 </div>
 
 <!-- Scripts -->
@@ -286,7 +179,7 @@ updateClock();
 // Mapa Leaflet
 const map = L.map('map').setView([-8.839,13.289],12);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-  maxZoom:19,
+  maxZoom:29,
   attribution:'&copy; OpenStreetMap'
 }).addTo(map);
 
@@ -336,6 +229,39 @@ document.getElementById('searchBtn').addEventListener('click', ()=>{
 document.getElementById('resetBtn').addEventListener('click', ()=>{
   map.setView([-8.839,13.289],12);
 });
+
 </script>
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const toggleBtn = document.getElementById('toggle-btn');
+
+  toggleBtn.addEventListener('click', () => {
+    // Se for mobile
+    if (window.innerWidth <= 768) {
+      sidebar.classList.toggle('show');
+    } else {
+      // Desktop — apenas recolhe
+      sidebar.classList.toggle('collapsed');
+    }
+  });
+
+  // Fecha o menu ao clicar fora (modo mobile)
+  document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 768) {
+      if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+        sidebar.classList.remove('show');
+      }
+    }
+  });
+
+  // Relógio dinâmico (opcional)
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent = now.toLocaleTimeString();
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+</script>
+
 </body>
 </html>
