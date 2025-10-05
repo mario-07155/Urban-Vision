@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Urban Vision | Monitoramento Ambiental</title>
+
+<!-- Bootstrap & Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<style>
+  body {
+    margin: 0;
+    font-family: "Poppins", sans-serif;
+    background: linear-gradient(135deg, #002f6c, #0081c9);
+    color: #fff;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ==== SIDEBAR ==== */
+  .sidebar {
+    width: 260px;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(8px);
+    color: white;
+    transition: width 0.3s ease;
+    overflow-y: auto;
+    padding-bottom: 1rem;
+  }
+
+  .sidebar.collapsed {
+    width: 85px;
+  }
+
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .sidebar-title {
+    margin-left: 10px;
+    font-size: 1.2rem;
+  }
+
+  .sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .sidebar-menu li {
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+
+  .sidebar-menu li:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .sidebar.collapsed li span {
+    display: none;
+  }
+
+  #toggle-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.3rem;
+    cursor: pointer;
+  }
+
+  /* ==== LEGENDA ==== */
+  .legend {
+    margin-top: 1rem;
+    padding: 0 1rem;
+  }
+
+  .legend h5 {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+  }
+
+  .color-box {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+  }
+
+  /* ==== MAIN ==== */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .header {
+    padding: 0.8rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .weather {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+  }
+
+  /* ==== SEARCH ==== */
+  .search-container {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .search-container input {
+    padding: 8px 10px;
+    border: none;
+    border-radius: 6px;
+    width: 220px;
+    outline: none;
+  }
+
+  /* ==== MAP ==== */
+  #map {
+    height: 50vh;
+    width: 95%;
+    margin: 0 auto;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  }
+
+  /* ==== CARDS ==== */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .info-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 0.8rem;
+    text-align: center;
+    transition: transform 0.2s, background 0.3s;
+  }
+
+  .info-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.25);
+  }
+
+  /* ==== RESPONSIVO ==== */
+  @media (max-width: 768px) {
+    body {
+      flex-direction: column;
+    }
+    .sidebar {
+      position: fixed;
+      height: 100%;
+      z-index: 10;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+    }
+    .sidebar.show {
+      transform: translateX(0);
+    }
+    #toggle-btn {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 5px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== BARRA LATERAL ===== -->
+<div id="sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <h3><i class="bi bi-search"></i> <span class="sidebar-title">Urban Vision</span></h3>
+    <button id="toggle-btn" class="btn btn-sm btn-light text-primary"><i class="bi bi-list"></i></button>
+  </div>
+
+  <ul class="sidebar-menu">
+    <li><i class="bi bi-house-door-fill"></i><span>Início</span></li>
+    <li><i class="bi bi-map"></i><span>Mapa</span></li>
+    <li><i class="bi bi-database"></i><span>Dados</span></li>
+    <li><i class="bi bi-graph-up"></i><span>Relatórios</span></li>
+    <li><i class="bi bi-gear-fill"></i><span>Configurações</span></li>
+  </ul>
+
+  <!-- LEGENDA -->
+  <div class="legend">
+    <h5><i class="bi bi-info-circle"></i> Legenda</h5>
+    <div class="legend-item"><div class="color-box" style="background:#198754"></div> Qualidade Boa (PM2.5 ≤ 10)</div>
+    <div class="legend-item"><div class="color-box" style="background:#ffc107"></div> Moderada (PM2.5 ≤ 25)</div>
+    <div class="legend-item"><div class="color-box" style="background:#dc3545"></div> Ruim (PM2.5 > 25)</div>
+    <hr class="text-light">
+    <div class="legend-item"><i class="bi bi-wind"></i> PM2.5 — Poluição do ar</div>
+    <div class="legend-item"><i class="bi bi-cloud-fog"></i> SO₂ — Dióxido de enxofre</div>
+    <div class="legend-item"><i class="bi bi-tree-fill"></i> Vegetação — Percentual verde</div>
+  </div>
+</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div id="main" class="main">
+  <div class="header">
+    <div class="weather" id="weatherBar">
+      <i class="bi bi-brightness-high-fill"></i>
+      <span id="weatherText">Domingo, 05 Outubro 2025 — Ensolarado</span>
+    </div>
+    <div id="clock" class="fw-bold"></div>
+  </div>
+
+  <!-- ===== PESQUISA ===== -->
+  <div class="search-container">
+    <input type="text" id="searchCity" placeholder="Pesquisar bairro... (ex: Samba)">
+    <button id="searchBtn" class="btn btn-primary"><i class="bi bi-search"></i></button>
+    <button id="resetBtn" class="btn btn-secondary"><i class="bi bi-arrow-clockwise"></i></button>
+  </div>
+
+  <!-- ===== MAPA ===== -->
+  <div id="map"></div>
+
+  <!-- ===== CARDS ===== -->
+  <div class="card-grid" id="cardsContainer">
+    <div class="info-card"><i class="bi bi-wind"></i><h3 class="fw-bold fs-6 mt-2">PM2.5</h3><p>Selecione um bairro no mapa.</p></div>
+    <div class="info-card"><i class="bi bi-cloud-fog"></i><h3 class="fw-bold fs-6 mt-2">SO₂</h3><p>Informações ao clicar em uma área.</p></div>
+    <div class="info-card"><i class="bi bi-tree-fill"></i><h3 class="fw-bold fs-6 mt-2">Vegetação</h3><p>Percentual verde urbano.</p></div>
+    <div class="info-card"><i class="bi bi-geo-alt-fill"></i><h3 class="fw-bold fs-6 mt-2">Localização</h3><p>Dados atualizados da área.</p></div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// Sidebar toggle
+const sidebar = document.getElementById('sidebar');
+const toggleBtn = document.getElementById('toggle-btn');
+
+toggleBtn.addEventListener('click', () => {
+  if (window.innerWidth < 768) {
+    sidebar.classList.toggle('show');
+  } else {
+    sidebar.classList.toggle('collapsed');
+  }
+});
+
+// Clock
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').innerText = now.toLocaleTimeString('pt-PT');
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Mapa Leaflet
+const map = L.map('map').setView([-8.839,13.289],12);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+  maxZoom:19,
+  attribution:'&copy; OpenStreetMap'
+}).addTo(map);
+
+// Dados (mock)
+const bairros = [
+  {name:"Maianga", coords:[-8.835,13.232], pm25:20, so2:6, verd:30, texto:"Maianga tem PM moderado e vegetação de 30%."},
+  {name:"Samba", coords:[-8.850,13.310], pm25:15, so2:4, verd:40, texto:"Samba possui ar limpo e vegetação de 40%."},
+  {name:"Rangel", coords:[-8.870,13.285], pm25:30, so2:8, verd:20, texto:"Rangel com poluição mais alta e vegetação baixa (20%)."},
+  {name:"Ingombota", coords:[-8.820,13.243], pm25:10, so2:3, verd:50, texto:"Ingombota é um bairro saudável com 50% de vegetação."}
+];
+
+function getColor(pm){ if(pm<=10)return"#198754"; if(pm<=25)return"#ffc107"; return"#dc3545"; }
+
+// Marcadores
+bairros.forEach(b=>{
+  const c=L.circle(b.coords,{
+    color:getColor(b.pm25),
+    fillColor:getColor(b.pm25),
+    fillOpacity:0.6,
+    radius:400
+  }).addTo(map);
+  c.bindPopup(`<b>${b.name}</b><br>PM2.5:${b.pm25}<br>SO₂:${b.so2}<br>Vegetação:${b.verd}%`);
+  c.on('click',()=>{
+    document.getElementById('cardsContainer').innerHTML = `
+      <div class="info-card"><i class="bi bi-wind"></i><h3>PM2.5</h3><p>${b.pm25} μg/m³</p></div>
+      <div class="info-card"><i class="bi bi-cloud-fog"></i><h3>SO₂</h3><p>${b.so2} ppm</p></div>
+      <div class="info-card"><i class="bi bi-tree-fill"></i><h3>Vegetação</h3><p>${b.verd}%</p></div>
+      <div class="info-card"><i class="bi bi-geo-alt-fill"></i><h3>${b.name}</h3><p>${b.texto}</p></div>
+    `;
+  });
+});
+
+// Pesquisa
+document.getElementById('searchBtn').addEventListener('click', ()=>{
+  const q = document.getElementById('searchCity').value.trim().toLowerCase();
+  const bairro = bairros.find(b => b.name.toLowerCase() === q);
+  if(bairro){
+    map.setView(bairro.coords, 14);
+    L.popup().setLatLng(bairro.coords)
+      .setContent(`<b>${bairro.name}</b><br>${bairro.texto}`)
+      .openOn(map);
+  } else {
+    alert("Bairro não encontrado!");
+  }
+});
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  map.setView([-8.839,13.289],12);
+});
+</script>
+</body>
+</html>
